@@ -1,0 +1,11 @@
+{
+  "sensor_id": "ESP32_001",
+  "zone_id": "ZONE_A",
+  "timestamp": "2026-11-01T14:30:00Z",
+  "temperature": 28.5,
+  "humidity": 75.2,
+  "soil_moisture": 42.0,
+  "co2": 650,
+  "light": 12000,
+  "leaf_wetness": 35.0
+}
