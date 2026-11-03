@@ -1,3 +1,11 @@
-# Ignore compiled C++ programs
+﻿# Compiled programs
 *.exe
 
+# Build directories
+build/
+cmake-build-*/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
