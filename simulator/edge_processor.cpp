@@ -4,6 +4,7 @@
 #include <regex>
 #include <cmath>
 #include <mqtt/client.h>
+#include <vector>
 
 using namespace std;
 
@@ -11,6 +12,16 @@ using namespace std;
 const string SERVER_ADDRESS = "tcp://localhost:1883";
 const string CLIENT_ID = "green_guardian_edge_processor";
 const string TOPIC = "green-guardian/sensors";
+
+// Environment risk thresholds
+const double MIN_TEMPERATURE = 18.0;
+const double MAX_TEMPERATURE = 30.0;
+
+const double MIN_HUMIDITY = 40.0;
+const double MAX_HUMIDITY = 80.0;
+
+const double MIN_SOIL_MOISTURE = 30.0;
+const double MAX_SOIL_MOISTURE = 70.0;
 
 // Extract a string field from JSON
 bool getStringField(const string& json, const string& key, string& value)
@@ -54,6 +65,42 @@ bool getNumberField(const string& json, const string& key, double& value)
     return false;
 }
 
+//Detect unusal greenhouse conditions based on sensor readings
+vector<string> detectRisks(double temperature, double humidity, double soilMoisture)
+{
+    vector<string> risks;
+
+    if (temperature < MIN_TEMPERATURE )
+    {
+        risks.push_back("Temperature is too low.");
+    }
+   
+     else if (temperature > MAX_TEMPERATURE)
+    {
+        risks.push_back("Temperature is too high.");
+    }
+
+    if (humidity < MIN_HUMIDITY )
+    {
+        risks.push_back("Humidity is too low.");
+    }
+    else if (humidity > MAX_HUMIDITY)
+    {
+        risks.push_back("Humidity is too high.");
+    }
+
+    if (soilMoisture < MIN_SOIL_MOISTURE )
+    {
+        risks.push_back("Soil moisture is too low.");
+    }
+    else if (soilMoisture > MAX_SOIL_MOISTURE)
+    {
+        risks.push_back("Soil moisture is too high.");
+    }
+
+    return risks;
+}
+
 // Validate and process an incoming sensor message
 void processSensorData(const string& payload)
 {
@@ -85,6 +132,7 @@ void processSensorData(const string& payload)
         cout << "\n[INVALID] Incorrect timestamp format." << endl;
         return;
     }
+
 
     // Validate sensor readings
     if (temperature < -50 || temperature > 100)
@@ -118,6 +166,25 @@ void processSensorData(const string& payload)
     cout << "Temperature: " << temperature << " C" << endl;
     cout << "Humidity: " << humidity << " %" << endl;
     cout << "Soil Moisture: " << soilMoisture << " %" << endl;
+
+    cout << "========================================" << endl;
+
+// Detect environmental risks 
+    vector<string> risks = detectRisks(temperature, humidity, soilMoisture);
+
+    if (risks.empty())
+    {
+        cout << "No environmental risks detected." << endl;
+    }
+    else
+    {
+        cout << "Risk Status: WARNING" << endl;
+        cout << "Environmental Risks Detected:" << endl;
+        for (const auto& risk : risks)
+        {
+            cout << "[RISK]" << risk << endl;
+        }
+    }
 
     cout << "========================================" << endl;
 }
