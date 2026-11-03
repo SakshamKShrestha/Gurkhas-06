@@ -27,3 +27,12 @@ add_executable(mqtt_publisher
 target_link_libraries(mqtt_publisher PRIVATE
     PahoMqttCpp::paho-mqttpp3-static
 )
+
+# Green Guardian Edge Data Processor (Task 4)
+add_executable(edge_processor
+    simulator/edge_processor.cpp
+)
+
+target_link_libraries(edge_processor PRIVATE
+    PahoMqttCpp::paho-mqttpp3-static
+)
