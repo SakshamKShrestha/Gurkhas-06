@@ -5,6 +5,8 @@
 #include <cmath>
 #include <mqtt/client.h>
 #include <vector>
+#include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -188,7 +190,47 @@ void processSensorData(const string& payload)
 
     cout << "========================================" << endl;
 }
+// Process locally stored sensor readings when MQTT is unavailable
+void processOfflineData()
+{
+    const string filePath = "simulator/offline_sensor_samples.jsonl";
 
+    ifstream inputFile(filePath);
+
+    if (!inputFile.is_open())
+    {
+        cerr << "[OFFLINE ERROR] Could not open sample data file: "
+             << filePath << endl;
+        return;
+    }
+
+    cout << "\n========================================" << endl;
+    cout << "       OFFLINE PROCESSING MODE" << endl;
+    cout << "========================================" << endl;
+    cout << "Network status: UNAVAILABLE" << endl;
+    cout << "Source: Local sample sensor data" << endl;
+
+    string payload;
+    int processedCount = 0;
+
+    while (getline(inputFile, payload))
+    {
+        if (payload.empty())
+        {
+            continue;
+        }
+
+        processSensorData(payload);
+        processedCount++;
+    }
+
+    inputFile.close();
+
+    cout << "\n========================================" << endl;
+    cout << "OFFLINE PROCESSING COMPLETED" << endl;
+    cout << "Readings processed: " << processedCount << endl;
+    cout << "========================================" << endl;
+}
 int main()
 {
     try
@@ -232,13 +274,20 @@ int main()
         }
 
         client.stop_consuming();
-        client.disconnect();
+
+        if (client.is_connected())
+        {
+            client.disconnect();
+        }
     }
     catch (const mqtt::exception& exc)
     {
-        cerr << "MQTT Error: " << exc.what() << endl;
-        return 1;
+        cerr << "\n[MQTT ERROR] " << exc.what() << endl;
+        cerr << "Switching to offline processing..." << endl;
     }
+
+    // Process local readings if MQTT is unavailable or disconnected
+    processOfflineData();
 
     return 0;
 }
